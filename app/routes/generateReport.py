@@ -89,7 +89,7 @@ async def process_documents_in_parallel(process_document, standard_file, standar
 
     return result_1, result_2
 
-@router.post("/admin/compare-document")
+@router.post("/user/compare-document")
 async def compare_document(
     standard_file: UploadFile = File(...),
     personal_file: UploadFile = File(...),

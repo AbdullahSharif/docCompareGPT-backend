@@ -1,5 +1,3 @@
-# app/routes/auth.py
-
 from fastapi import APIRouter, HTTPException
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.utils.hash import hash_password, verify_password
@@ -16,7 +14,7 @@ db = client[settings.MONGO_DB]
 
 
 # sign up 
-@router.post("/signup", response_model=UserResponse)
+@router.post("/signup")
 async def signup(user_data: UserCreate):
 
     user = await db["users"].find_one({"email": user_data.email})
@@ -34,14 +32,23 @@ async def signup(user_data: UserCreate):
     
     result = await db["users"].insert_one(new_user)
     new_user["id"] = str(result.inserted_id)
+
+    # Create JWT token after successful signup
+    access_token = create_access_token(data={"sub": new_user["email"]})
     
-    return UserResponse(username=new_user["username"], email=new_user["email"], message ="User created successfully")
+    return {
+        "username": new_user["username"],
+        "email": new_user["email"],
+        "message": "User created successfully",
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_type": new_user["user_type"]
+    }
 
 
 # login 
 @router.post("/login")
 async def login(user_data: UserLogin):
-    print("user_data",user_data)
     user = await db["users"].find_one({"email": user_data.email})
     if not user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
