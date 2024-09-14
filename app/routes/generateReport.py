@@ -96,6 +96,7 @@ async def compare_document(
     current_user: dict = Depends(get_current_user)
 ):
     try:
+        print(current_user)
         standard_client = OpenAI(api_key=api_key1)
         personal_client = OpenAI(api_key=api_key2)
         pine1 = os.getenv("PINECONE_API_KEY")
