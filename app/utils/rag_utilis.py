@@ -123,18 +123,24 @@ def query_pinecone(pinecone_client, index_name, namespaces, query_embedding):
     
     return all_chunks
 
+previous_responses = []
+
 def generate_answer(chunks, query, openai_client):
     # Combine the retrieved chunks and generate an answer using GPT
     context = "\n".join(chunks)
+    previous_responses_str = "\n\n".join(previous_responses[-2:])
     print("context",context)
     print("query",query)
   
     prompt = f"""
     You are a knowledgable AI tasked with helping users generating a Standard Document. The user will specify his product.
-    You are to ask him questions to help them focus their questions on the relevant topic. You will also be provided a context from a document,
+    You are to ask him questions to help them focus their questions on the relevant topic. You will also be SOMETIMES provided a context from a document,
     related to the product.
         Context Information:
     {context}
+    
+    Previous GPT Responses:
+    {str(previous_responses_str)}
 
     Question:
     {query}
@@ -145,14 +151,16 @@ def generate_answer(chunks, query, openai_client):
 
     2. **Out of Context**: If the question is not relevant to the context or is significantly unrelated, respond with the following message: *"I am not trained to answer this question."* You may include a brief explanation as to why the topic does not match the context, if necessary.
 
-    3. You are to ask him questions to help them focus their questions on the relevant topic. You will also be provided a context from a document,
+    3. You are to ask him questions to help them focus their questions on the relevant topic. You will also be SOMETIMES provided a context from a document,
     related to the product.
     
     4. Be courteous
     
     5. You are allowed to use your own knowledge base if you feel the context is insufficient
     
-    6. Ask at the end of the answer "Generate Response" If the user types a sentence similiar to this generate a response.
+    6. If the user has already mentioned his/her requirements, generate a report IN A WELL FORMATTED MANNER.
+    
+    7.IF THE USER HAS ALREADY MENTIONED his/her requirements, generate a report IN A WELL FORMATTED MANNER
     """
 
 

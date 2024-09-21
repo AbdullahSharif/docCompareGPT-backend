@@ -1,7 +1,7 @@
 from fastapi import File, UploadFile, Depends,APIRouter, WebSocket, Form,HTTPException
 import shutil
 import os
-from ..utils.rag_utilis import load_pdf_content, divide_into_chunks, get_embeddings, batch_upsert,generate_answer,query_pinecone
+from ..utils.rag_utilis import load_pdf_content, divide_into_chunks, get_embeddings, batch_upsert,generate_answer,query_pinecone,previous_responses
 from client import get_openai_client
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.config import settings
@@ -78,13 +78,9 @@ async def upload_file(
         return {"error": str(e)}
 
 
-
-
-
 @router.post("/user/chat")
 async def chat_with_document( body: ChatRequest,
-                                 current_user: dict = Depends(get_current_user)
- 
+                                 
 ):
     try:
        
@@ -114,6 +110,10 @@ async def chat_with_document( body: ChatRequest,
         
         # Generate a response using the retrieved chunks
         response = generate_answer(chunks, query, openai_client)
+        
+        if len(previous_responses) >= 2:
+            previous_responses.pop(0)  
+        previous_responses.append(response.content)
         
         return {"response": response}
     
